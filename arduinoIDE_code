@@ -1,0 +1,42 @@
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
+
+const char* ssid = "KT_GiGA_2G_Wave2_60CB";
+const char* password = "agkc7hc202";
+const int ledPin = D0;
+
+ESP8266WebServer server(80);
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+
+  Serial.begin(115200);
+
+  WiFi.begin(ssid, password);
+  Serial.println("");
+
+  // WiFi 연결 대기
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.print("WiFi 연결됨: ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/toggle", HTTP_GET, []() {
+    ledState = !ledState;
+    digitalWrite(ledPin, ledState ? HIGH : LOW);
+    server.send(200, "text/plain", ledState ? "ON" : "OFF");
+  });
+
+  server.begin();
+  Serial.println("HTTP 서버 시작됨");
+}
+
+void loop() {
+  server.handleClient();
+}
